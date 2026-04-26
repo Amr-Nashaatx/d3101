@@ -4,10 +4,6 @@ body {
   color: #333;
 }
 
-#app {
-  position: relative;
-  height: 40px;
-}
 path {
   fill: none;
   stroke: orange;
