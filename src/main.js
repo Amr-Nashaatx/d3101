@@ -27,13 +27,16 @@ const yAxisSvg = viewport.append("g");
 xAxisSvg.attr("transform", `translate(0, ${INNER_HEIGHT})`).call(xAxis);
 yAxisSvg.call(yAxis);
 
-applyZoom(SVG, (newX, newY) => {
+applyZoom(SVG, (newX, newY, scaleFactor) => {
   // update axis
   xAxisSvg.call(axisBottom(newX));
   yAxisSvg.call(axisLeft(newY));
   // update circles
-  viewport.selectAll("circle").attr("cx", (d) => newX(d.distance));
-  viewport.selectAll("circle").attr("cy", (d) => newY(d.size));
+  viewport
+    .selectAll("circle")
+    .attr("cx", (d) => newX(d.distance))
+    .attr("cy", (d) => newY(d.size))
+    .attr("r", (d) => rScale(d.size) * scaleFactor);
   // update labels
   viewport
     .selectAll(".planet-label")

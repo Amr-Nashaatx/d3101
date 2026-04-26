@@ -9,10 +9,11 @@ export function applyZoom(SVG, updateFn) {
 
   function zoomedHandler(e) {
     const transform = e.transform;
+    const scaleFactor = e.transform.k;
 
     const newX = transform.rescaleX(xScale);
     const newY = transform.rescaleY(yScale);
 
-    updateFn(newX, newY);
+    updateFn(newX, newY, scaleFactor);
   }
 }
