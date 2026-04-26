@@ -1,12 +1,8 @@
-import { axisBottom, axisLeft, max, scaleLinear, select } from "d3";
-import {
-  SVG_WIDTH,
-  SVG_HEIGHT,
-  INNER_HEIGHT,
-  MARGIN,
-  INNER_WIDTH,
-} from "./cosntants";
-
+import { axisBottom, axisLeft, select } from "d3";
+import { SVG_WIDTH, SVG_HEIGHT, INNER_HEIGHT, MARGIN } from "./cosntants";
+import { xScale, yScale, colorScale, fontScale, rScale } from "./scales";
+import { applyZoom } from "./zoom";
+import { planets } from "./data";
 // Append the SVG Element
 const app = document.querySelector("#app");
 const svgNode = document.createElement("svg");
@@ -22,37 +18,28 @@ const viewport = SVG.append("g").attr(
   `translate(${MARGIN.left}, ${MARGIN.top})`,
 );
 
-const planets = [
-  { name: "Mercury", distance: 0.39, size: 2.4 },
-  { name: "Venus", distance: 0.72, size: 6.1 },
-  { name: "Earth", distance: 1.0, size: 6.4 },
-  { name: "Mars", distance: 1.52, size: 3.4 },
-  { name: "Jupiter", distance: 5.2, size: 71.0 },
-  { name: "Saturn", distance: 9.58, size: 60.0 },
-  { name: "Uranus", distance: 19.2, size: 25.0 },
-  { name: "Neptune", distance: 30.05, size: 24.6 },
-];
-
-const xScale = scaleLinear().domain([0, 31]).range([0, INNER_WIDTH]);
-const yScale = scaleLinear()
-  .domain([0, max(planets, (d) => d.size)])
-  .range([INNER_HEIGHT, 0]);
-
-const fontScale = scaleLinear()
-  .domain([0, max(planets, (d) => d.size)])
-  .range([5, 18]);
-const rScale = scaleLinear().domain([0, 100]).range([2, 40]);
-
-const colorScale = scaleLinear().domain([0, 25]).range(["orange", "red"]);
-
 const xAxis = axisBottom(xScale);
 const yAxis = axisLeft(yScale).ticks(5);
 
-viewport
-  .append("g")
-  .attr("transform", `translate(0, ${yScale(0)})`)
-  .call(xAxis);
-viewport.append("g").call(yAxis);
+const xAxisSvg = viewport.append("g");
+const yAxisSvg = viewport.append("g");
+
+xAxisSvg.attr("transform", `translate(0, ${INNER_HEIGHT})`).call(xAxis);
+yAxisSvg.call(yAxis);
+
+applyZoom(SVG, (newX, newY) => {
+  // update axis
+  xAxisSvg.call(axisBottom(newX));
+  yAxisSvg.call(axisLeft(newY));
+  // update circles
+  viewport.selectAll("circle").attr("cx", (d) => newX(d.distance));
+  viewport.selectAll("circle").attr("cy", (d) => newY(d.size));
+  // update labels
+  viewport
+    .selectAll(".planet-label")
+    .attr("x", (d) => newX(d.distance))
+    .attr("y", (d) => newY(d.size));
+});
 
 viewport
   .selectAll("circle")
@@ -67,6 +54,7 @@ viewport
   .selectAll(".planet-label")
   .data(planets)
   .join("text")
+  .attr("class", "planet-label")
   .attr("x", (d) => xScale(d.distance))
   .attr("y", (d) => yScale(d.size))
   .attr("dx", 6)
