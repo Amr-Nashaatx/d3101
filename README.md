@@ -1,6 +1,8 @@
-# D3 Planet Zoom Chart
+# D3 Simple visualizations
 
-A small Vite + D3 demo that plots planets by distance and size. The chart includes axes, circles, labels, color/radius scaling, and zoom interaction that rescales the view.
+A small Vite + D3 demos each branch has seperate data and visualiztion.
+master -> basic zoomable and pannable scatter plot for planets
+graph -> basic zoomable pannable graph plot with relations with draggable nodes.
 
 this repo is just for practice.
 Run it locally:
