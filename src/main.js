@@ -1,66 +1,92 @@
-import { axisBottom, axisLeft, select } from "d3";
-import { SVG_WIDTH, SVG_HEIGHT, INNER_HEIGHT, MARGIN } from "./cosntants";
-import { xScale, yScale, colorScale, fontScale, rScale } from "./scales";
+import { drag, select, pointer } from "d3";
+import { INNER_HEIGHT, INNER_WIDTH, SVG_HEIGHT, SVG_WIDTH } from "./cosntants";
+import { xScale, yScale, colorScale } from "./scales";
+import { edges, nodes } from "./data";
 import { applyZoom } from "./zoom";
-import { planets } from "./data";
-// Append the SVG Element
-const app = document.querySelector("#app");
-const svgNode = document.createElement("svg");
-svgNode.setAttribute("width", SVG_WIDTH);
-svgNode.setAttribute("height", SVG_HEIGHT);
-app.appendChild(svgNode);
 
-// SVG selection
-const SVG = select("svg");
+const SVG = select("#app")
+  .append("svg")
+  .attr("width", SVG_WIDTH)
+  .attr("height", SVG_HEIGHT);
 
 const viewport = SVG.append("g").attr(
   "transform",
-  `translate(${MARGIN.left}, ${MARGIN.top})`,
+  `translate(${(SVG_WIDTH - INNER_WIDTH) / 2}, ${(SVG_HEIGHT - INNER_HEIGHT) / 2})`,
 );
+const graph = viewport.append("g");
 
-const xAxis = axisBottom(xScale);
-const yAxis = axisLeft(yScale).ticks(5);
+const nodeById = new Map(nodes.map((node) => [node.id, node]));
 
-const xAxisSvg = viewport.append("g");
-const yAxisSvg = viewport.append("g");
+function getNodeX(id) {
+  return xScale(nodeById.get(id).x);
+}
 
-xAxisSvg.attr("transform", `translate(0, ${INNER_HEIGHT})`).call(xAxis);
-yAxisSvg.call(yAxis);
+function getNodeY(id) {
+  return yScale(nodeById.get(id).y);
+}
 
-applyZoom(SVG, (newX, newY, scaleFactor) => {
-  // update axis
-  xAxisSvg.call(axisBottom(newX));
-  yAxisSvg.call(axisLeft(newY));
-  // update circles
-  viewport
-    .selectAll("circle")
-    .attr("cx", (d) => newX(d.distance))
-    .attr("cy", (d) => newY(d.size))
-    .attr("r", (d) => rScale(d.size) * scaleFactor);
-  // update labels
-  viewport
-    .selectAll(".planet-label")
-    .attr("x", (d) => newX(d.distance))
-    .attr("y", (d) => newY(d.size));
+function updateGraph() {
+  graph
+    .selectAll(".edge")
+    .attr("x1", (d) => getNodeX(d.source))
+    .attr("y1", (d) => getNodeY(d.source))
+    .attr("x2", (d) => getNodeX(d.target))
+    .attr("y2", (d) => getNodeY(d.target));
+
+  graph
+    .selectAll(".node")
+    .attr("cx", (d) => xScale(d.x))
+    .attr("cy", (d) => yScale(d.y));
+
+  graph
+    .selectAll(".label")
+    .attr("x", (d) => xScale(d.x))
+    .attr("y", (d) => yScale(d.y));
+}
+
+const dragBehavior = drag()
+  .on("start", (e) => e.sourceEvent.stopPropagation())
+  .on("drag", dragHandler);
+
+function dragHandler(e, d) {
+  const [px, py] = pointer(e, graph.node());
+
+  d.x = xScale.invert(px);
+  d.y = yScale.invert(py);
+  updateGraph();
+}
+
+applyZoom(SVG, (transform) => {
+  graph.attr("transform", transform);
 });
+graph
+  .selectAll(".edge")
+  .data(edges)
+  .join("line")
+  .attr("class", "edge")
+  .attr("x1", (d) => getNodeX(d.source))
+  .attr("y1", (d) => getNodeY(d.source))
+  .attr("x2", (d) => getNodeX(d.target))
+  .attr("y2", (d) => getNodeY(d.target))
+  .style("stroke", "white")
+  .style("stroke-width", 2);
 
-viewport
-  .selectAll("circle")
-  .data(planets)
+graph
+  .selectAll(".node")
+  .data(nodes)
   .join("circle")
-  .attr("cx", (d) => xScale(d.distance))
-  .attr("cy", (d) => yScale(d.size))
-  .attr("fill", (d) => colorScale(d.size))
-  .attr("r", (d) => rScale(d.size));
+  .attr("class", "node")
+  .attr("cx", (d) => xScale(d.x))
+  .attr("cy", (d) => yScale(d.y))
+  .attr("fill", (d) => colorScale(d.y))
+  .attr("r", 50)
+  .call(dragBehavior);
 
-viewport
-  .selectAll(".planet-label")
-  .data(planets)
+graph
+  .selectAll(".label")
+  .data(nodes)
   .join("text")
-  .attr("class", "planet-label")
-  .attr("x", (d) => xScale(d.distance))
-  .attr("y", (d) => yScale(d.size))
-  .attr("dx", 6)
-  .attr("dy", 10)
-  .style("font-size", (d) => `${fontScale(d.size)}px`)
-  .text((d) => d.name);
+  .attr("class", "label")
+  .text((d) => d.id)
+  .attr("x", (d) => xScale(d.x))
+  .attr("y", (d) => yScale(d.y));

@@ -1,18 +1,16 @@
-import { max, scaleLinear, scaleSequential } from "d3";
+import { extent, scaleLinear, scaleSequential } from "d3";
 import { INNER_HEIGHT, INNER_WIDTH } from "./cosntants";
-import { planets } from "./data";
+import { nodes } from "./data";
 import { interpolateYlOrRd } from "d3-scale-chromatic";
 
-export const colorScale = scaleSequential(interpolateYlOrRd).domain([0, 71]);
+const NODE_PADDING = 30;
+
+export const colorScale = scaleSequential(interpolateYlOrRd).domain(
+  extent(nodes, (d) => d.x),
+);
 export const xScale = scaleLinear()
-  .domain([0, max(planets, (d) => d.distance)])
-  .range([0, INNER_WIDTH]);
+  .domain(extent(nodes, (d) => d.x))
+  .range([NODE_PADDING, INNER_WIDTH - NODE_PADDING]);
 export const yScale = scaleLinear()
-  .domain([0, max(planets, (d) => d.size)])
-  .range([INNER_HEIGHT, 0]);
-
-export const fontScale = scaleLinear()
-  .domain([0, max(planets, (d) => d.size)])
-  .range([5, 18]);
-
-export const rScale = scaleLinear().domain([0, 100]).range([2, 40]);
+  .domain(extent(nodes, (d) => d.y))
+  .range([NODE_PADDING, INNER_HEIGHT - NODE_PADDING]);
