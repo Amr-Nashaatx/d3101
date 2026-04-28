@@ -1,9 +1,13 @@
 export const nodes = [
-  { id: "Alice", x: 300, y: 150 },
-  { id: "Bob", x: 100, y: 300 },
-  { id: "Carol", x: 500, y: 300 },
-  { id: "Dave", x: 150, y: 500 },
-  { id: "Eve", x: 450, y: 500 },
+  { id: "Alice" },
+  { id: "Bob" },
+  { id: "Carol" },
+  { id: "Dave" },
+  { id: "Eve" },
+  { id: "Frank" },
+  { id: "Grace" },
+  { id: "Heidi" },
+  { id: "Ivan" },
 ];
 
 export const edges = [
@@ -11,5 +15,10 @@ export const edges = [
   { source: "Alice", target: "Carol" },
   { source: "Bob", target: "Dave" },
   { source: "Carol", target: "Eve" },
-  { source: "Dave", target: "Eve" },
+  { source: "Dave", target: "Frank" },
+  { source: "Eve", target: "Frank" },
+  { source: "Frank", target: "Grace" },
+  { source: "Grace", target: "Heidi" },
+  { source: "Heidi", target: "Ivan" },
+  { source: "Ivan", target: "Alice" },
 ];

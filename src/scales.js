@@ -11,6 +11,7 @@ export const colorScale = scaleSequential(interpolateYlOrRd).domain(
 export const xScale = scaleLinear()
   .domain(extent(nodes, (d) => d.x))
   .range([NODE_PADDING, INNER_WIDTH - NODE_PADDING]);
+
 export const yScale = scaleLinear()
   .domain(extent(nodes, (d) => d.y))
   .range([NODE_PADDING, INNER_HEIGHT - NODE_PADDING]);
